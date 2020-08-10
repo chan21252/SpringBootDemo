@@ -19,7 +19,7 @@ sl4j对不同日志框架的支持：
 1. 实现了sl4j-api的日志类，直接支持
 2. 未实现了sl4j-api的日志类，通过适配层，向上实现sl4j-api，向下调用日志实现类。例如，log4j。
 
-![sl4j](./images/sl4j-concrete-bindings.png)
+![sl4j](https://image.5460cc.com/springboot/sl4j-concrete-bindings.png)
 
 
 
@@ -47,7 +47,7 @@ public class HelloWorld {
 
 问题：
 
-我们自己的系统中使用的日志系统是sl4j+logback，但是系统依赖的库使用的是其他日志系统（比如依赖Spring，Spring使用的是commons-logging）,如何让系统所有的日志都统一到sl4j？
+我们自己的系统中使用的日志系统是sl4j+logback，但是系统依赖的库使用的是其他日志系统（比如依赖Spring，Spring使用的是commons-logging），如何让系统所有的日志都统一到sl4j？
 
 
 
@@ -65,13 +65,13 @@ public class HelloWorld {
 2. 中间换皮包统一调用sl4j-api
 3. sl4j-api调用具体的日志实现框架
 
-![sl4j-legacy](./images/sl4j-legacy.png)
+![sl4j-legacy](https://image.5460cc.com/springboot/sl4j-legacy.png)
 
 ### 3、SpringBoot日志关系
 
 **SpringBoot使用的是sl4j+logback记录日志，引入其他库时，只需要把原有日志框架擦除掉就可以了。**
 
-![springboot-logging](./images/springboot-logging.png)
+![springboot-logging](https://image.5460cc.com/springboot/springboot-logging.png)
 
 
 
@@ -82,14 +82,6 @@ public class HelloWorld {
 **日志输出级别**
 
 SpringBoot使用sl4j框架，sl4j的日志输出级别从低到高：trace<debug<info<warn<error。
-
-logging.level
-
-```yaml
-logging:
-  level:
-    root: trace
-```
 
 **日志输出位置**
 
@@ -113,8 +105,6 @@ logging:
 **日志输出格式**
 
 logback输出格式：http://logback.qos.ch/manual/layouts.html
-
-
 
 **参考配置**
 
