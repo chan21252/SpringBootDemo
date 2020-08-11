@@ -24,23 +24,35 @@
             <artifactId>spring-boot-starter-web</artifactId>
             <exclusions>
                 <!-- 排除logback -->
-                <exclusion>
+                <!--<exclusion>
                     <groupId>ch.qos.logback</groupId>
                     <artifactId>logback-classic</artifactId>
-                </exclusion>
+                </exclusion>-->
 
                 <!-- 排除log4j-to-slf4j，因为原本使用log4j的无需改变 -->
-                <exclusion>
+                <!--<exclusion>
                     <groupId>org.apache.logging.log4j</groupId>
                     <artifactId>log4j-to-slf4j</artifactId>
+                </exclusion>-->
+
+                <!-- 排除 spring-boot-starter -->
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
 
         <!-- 引入sl4j-log4j12 -->
-        <dependency>
+        <!--<dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
+        </dependency>-->
+
+        <!-- 排除 spring-boot-log4j2 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-log4j2</artifactId>
         </dependency>
 
         <dependency>

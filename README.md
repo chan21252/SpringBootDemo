@@ -73,7 +73,7 @@ public class HelloWorld {
 
 ### 3、SpringBoot日志关系
 
-**SpringBoot使用的是sl4j+logback记录日志，引入其他库时，只需要把原有日志框架擦除掉就可以了。**
+**SpringBoot使用的是sl4j+logback记录日志，引入其他库时，只需要把原有日志框架擦除掉就，引入中间包可以了。**
 
 ![springboot-logging](https://image.5460cc.com/springboot/springboot-logging.png)
 
@@ -198,7 +198,9 @@ logback-spring.xml配置文件：
 
 ### 5、切换日志框架
 
-比如切换日志框架到log4j1.2，参考sl4j提供的统一日志框架方法
+#### 1、切换日志框架到log4j1.2
+
+参考sl4j提供的统一日志框架方法
 
 1. 排除原有的日志实现框架，springboot默认的是logback
 2. 排除统一日志框架用到的中间换皮包：sl4j-over-log4j，sl4j-to-log4j（原本使用log4j记录日志的不需要统一）
@@ -232,5 +234,58 @@ logback-spring.xml配置文件：
 </dependencies>
 ```
 
+#### 2、spring-boot-starter-log4j2
 
+1. 排除spring-boot-starter-logging
+2. 引入spring-boot-starter-log4j2
+3. 添加log4j2的配置文件
+
+log4j2.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Configuration后面的status，这个用于设置log4j2自身内部的信息输出，可以不设置，当设置成trace时，你会看到log4j2内部各种详细输出。
+    monitorInterval：Log4j能够自动检测修改配置 文件和重新配置本身，设置间隔秒数。
+-->
+<configuration status="error" monitorInterval="30">
+    <!--先定义所有的appender-->
+    <appenders>
+        <!--这个输出控制台的配置-->
+        <Console name="Console" target="SYSTEM_OUT">
+            <!--控制台只输出level及以上级别的信息（onMatch），其他的直接拒绝（onMismatch）-->
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+            <!--这个都知道是输出日志的格式-->
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} %-5level %class{36} %L %M - %msg%xEx%n"/>
+        </Console>
+        <!--文件会打印出所有信息，这个log每次运行程序会自动清空，由append属性决定，这个也挺有用的，适合临时测试用-->
+        <File name="log" fileName="/opt/data/wwwlogs/springboot/app.log" append="false">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} %-5level %class{36} %L %M - %msg%xEx%n"/>
+        </File>
+        <!-- 这个会打印出所有的信息，每次大小超过size，则这size大小的日志会自动存入按年份-月份建立的文件夹下面并进行压缩，作为存档-->
+        <RollingFile name="RollingFile" fileName="/opt/data/wwwlogs/springboot/springboot-logging.log"
+                     filePattern="/opt/data/wwwlogs/springboot/$${date:yyyy-MM}/app-%d{MM-dd-yyyy}-%i.log.gz">
+            <PatternLayout pattern="%d{yyyy-MM-dd 'at' HH:mm:ss z} %-5level %class{36} %L %M - %msg%xEx%n"/>
+            <SizeBasedTriggeringPolicy size="50MB"/>
+            <!-- DefaultRolloverStrategy属性如不设置，则默认为最多同一文件夹下7个文件，这里设置了20 -->
+            <DefaultRolloverStrategy max="20"/>
+        </RollingFile>
+    </appenders>
+    <!--然后定义logger，只有定义了logger并引入的appender，appender才会生效-->
+    <loggers>
+        <!--建立一个默认的root的logger-->
+        <root level="INFO">
+            <appender-ref ref="RollingFile"/>
+            <appender-ref ref="Console"/>
+        </root>
+    </loggers>
+</configuration>
+```
+
+
+
+日志配置总结
+
+1. appenders：日志输出器，定义输出目标，级别，信息等
+2. loggers：指定项目、包、类使用何种appenders记录日志
 
