@@ -1,20 +1,96 @@
+# 一、SpringBoot入门
+
+# 二、配置文件
+
+## 1、配置文件
+
+SpringBoot使用全局配置文件，配置文件名是固定的：
+
+- application.properties
+- application.yml
+
+配置文件的作用：
+
+- 修改SpringBoot自动配置的默认值
+- 很多设置SpringBoot在底层都给我们自动配置好
+
+## 2、YAML
+
+> YAML 是 "YAML Ain't a Markup Language"（YAML 不是一种标记语言）的递归缩写。
+
+### 1、基本语法
+
+k:(空格)v：表示一对键值对（必须要有空格）；
+
+以**空格**的缩进来控制层级关系；只要是左对齐的一列数据，都是同一个层级的；
+
+```yaml
+server:
+    port: 8081
+    path: /hello
+```
+
+属性和值也是大小写敏感。
 
 
-# SpringBoot
+
+### 2、值的写法
+
+#### 字面量（数字，字符串，布尔）
+
+```yaml
+k: v
+# 字符串默认不需要加单引号或者双引号;
+# "":不会转义字符串里面的特殊字符
+# '':会转义特殊字符
+
+name: "zhangsan \n lisi"
+# 输出 zhangsan \n lisi
+
+name: 'zhangsan \n lisi'
+# 输出 zhangsan 换行 lisi
+```
+
+#### 对象（Map）
+
+```yaml
+person:
+  lastName: zhangsan
+  age: 20
+# 在下一行空格缩进，来写对象的键值对
+
+# 行内写法 
+person: {lastName: zhangsan,age: 20}
+```
+
+#### 数组（List、Set）
+
+```yaml
+# -表示数组元素
+pet:
+  - cat
+  - dog
+  - pig
+
+# 行内写法
+pets: [cat,dog,pig]
+```
 
 
 
-## 三、日志
 
-### 1、日志框架
+
+# 三、日志
+
+## 1、日志框架
 
 | 日志门面 | 日志实现               |
 | -------- | ---------------------- |
 | sl4j     | logback，log4j，log4j2 |
 
-### 2、SL4J使用
+## 2、SL4J使用
 
-#### 1、在系统中使用sl4j
+### 1、在系统中使用sl4j
 
 > 官网：http://www.slf4j.org/
 
@@ -47,7 +123,7 @@ public class HelloWorld {
 
 
 
-#### 2、日志统一问题
+### 2、日志统一问题
 
 问题：
 
@@ -71,7 +147,7 @@ public class HelloWorld {
 
 ![sl4j-legacy](https://image.5460cc.com/springboot/sl4j-legacy.png)
 
-### 3、SpringBoot日志关系
+## 3、SpringBoot日志关系
 
 **SpringBoot使用的是sl4j+logback记录日志，引入其他库时，只需要把原有日志框架擦除掉就，引入中间包可以了。**
 
@@ -79,11 +155,11 @@ public class HelloWorld {
 
 
 
-### 4、日志使用
+## 4、日志使用
 
 > SpringBoot日志相关文档：https://docs.spring.io/spring-boot/docs/2.3.2.RELEASE/reference/htmlsingle/#boot-features-logging
 
-#### 1、默认配置
+### 1、默认配置
 
 **日志输出级别**
 
@@ -130,7 +206,7 @@ logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} [ %level ] [ %t ] --- [ %L ] [ %
 logging.pattern.file=%d{yyyy-MM-dd HH:mm:ss} [ %level ] [ %t ] --- [ %L ] [ %-20C ] %m %n
 ```
 
-#### 2、指定配置
+### 2、指定配置
 
 SpringBoot可以在类路径下放置日志的指定配置文件，或者通过*logging.config*指定配置文件的位置。
 
@@ -196,9 +272,9 @@ logback-spring.xml配置文件：
 </configuration>
 ```
 
-### 5、切换日志框架
+## 5、切换日志框架
 
-#### 1、切换日志框架到log4j1.2
+### 1、切换到log4j1.2
 
 参考sl4j提供的统一日志框架方法
 
@@ -234,7 +310,7 @@ logback-spring.xml配置文件：
 </dependencies>
 ```
 
-#### 2、spring-boot-starter-log4j2
+### 2、spring-boot-starter-log4j2
 
 1. 排除spring-boot-starter-logging
 2. 引入spring-boot-starter-log4j2
