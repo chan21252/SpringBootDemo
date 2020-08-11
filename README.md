@@ -1,4 +1,8 @@
+
+
 # SpringBoot
+
+
 
 ## 三、日志
 
@@ -77,6 +81,8 @@ public class HelloWorld {
 
 ### 4、日志使用
 
+> SpringBoot日志相关文档：https://docs.spring.io/spring-boot/docs/2.3.2.RELEASE/reference/htmlsingle/#boot-features-logging
+
 #### 1、默认配置
 
 **日志输出级别**
@@ -126,4 +132,105 @@ logging.pattern.file=%d{yyyy-MM-dd HH:mm:ss} [ %level ] [ %t ] --- [ %L ] [ %-20
 
 #### 2、指定配置
 
-**SpringBoot**
+SpringBoot可以在类路径下放置日志的指定配置文件，或者通过*logging.config*指定配置文件的位置。
+
+SpringBoot可以自动识别加载以下日志配置：
+
+| 日志系统                | 指定配置文件                    |
+| ----------------------- | ------------------------------- |
+| logback                 | logback-spring.xml，logback.xml |
+| log4j2                  | log4j2-spring.xml，log4j2.xml   |
+| JDK (Java Util Logging) | logging.properties              |
+
+logback-spring.xml配置文件：
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration scan="false" scanPeriod="60 seconds" debug="false">
+    <!--定义日志文件的存储地址，勿在LogBack 的配置中使用相对路径-->
+    <property name="LOG_HOME" value="/opt/data/wwwlogs/springboot" />
+    <property name="APP_NAME" value="springboot-logging" />
+
+    <!--控制台日志， 控制台输出 -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!-- springProfile 仅在文件名为logback-spring.xml时支持 -->
+            <springProfile name="dev">
+                <pattern>%d{yyyy-MM-dd HH:mm:ss} [ %-5level ] [ %t ] --- [ %L ] [ %-20C ] %m %n</pattern>
+            </springProfile>
+            <springProfile name="!dev">
+                <pattern>%d{yyyy-MM-dd HH:mm:ss} [ %-5level ] [ %t ] === [ %L ] [ %-20C ] %m %n</pattern>
+            </springProfile>
+        </encoder>
+    </appender>
+
+    <!--
+        RollingFileAppender：滚动记录文件，现将日志记录到指定文件，符合滚动条件时，将日志记录到其他文件。
+    -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--
+            滚动策略：常见有TimeBasedRollingPolicy和SizeBasedTriggeringPolicy，根据时间和文件大小滚动。
+        -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 每天滚动 -->　　　　　　
+            <fileNamePattern>${LOG_HOME}/${APP_NAME}.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!-- 最多保留近30天的日志 -->
+            <maxHistory>30</maxHistory>　
+        </rollingPolicy>　　　　　　　　
+        <encoder>　　　　　　　　　　　　
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [ %-5level ] [ %t ] --- [ %L ] [ %-20C ] %m %n</pattern>　　　　　　　　　　　　
+        </encoder>
+        <!--日志文件最大的大小-->
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <MaxFileSize>10MB</MaxFileSize>
+        </triggeringPolicy>
+    </appender>
+
+    <logger name="org.springframework.boot" level="INFO" />
+    <logger name="com.chan.springboot" level="TRACE" />
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
+    </root>
+</configuration>
+```
+
+### 5、切换日志框架
+
+比如切换日志框架到log4j1.2，参考sl4j提供的统一日志框架方法
+
+1. 排除原有的日志实现框架，springboot默认的是logback
+2. 排除统一日志框架用到的中间换皮包：sl4j-over-log4j，sl4j-to-log4j（原本使用log4j记录日志的不需要统一）
+3. 引入sl4j-log4j12包，添加log4j配置文件到类路径
+
+```xml
+<dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <!-- 排除logback -->
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-classic</artifactId>
+                </exclusion>
+
+                <!-- 排除log4j-to-slf4j，因为原本使用log4j的无需改变 -->
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-to-slf4j</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- 引入sl4j-log4j12 -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+        </dependency>
+</dependencies>
+```
+
+
+
