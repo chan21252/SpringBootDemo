@@ -365,3 +365,170 @@ log4j2.xml
 1. appenders：日志输出器，定义输出目标，级别，信息等
 2. loggers：指定项目、包、类使用何种appenders记录日志
 
+# 四、web开发
+
+## 1、简介
+
+SpringBootWeb
+
+1. 创建SpringBoot项目，选择需要的模块；
+2. SpringBoot已经默认将这些场景配置好了，只需要在配置文件中指定少量配置就可以运行；
+3. 编写业务代码。
+
+
+
+思考：
+
+1. SpringBoot完成了那些自动配置？
+2. 如何修改这些配置？
+3. 如何扩展这些配置？
+
+
+
+自动配置：
+
+xxxxAutoConfiguration：帮我们给容器中自动配置组件；
+xxxxProperties：配置类来封装配置文件的内容；
+
+## 2、静态资源映射规则
+
+```java
+package org.springframework.boot.autoconfigure.web.servlet;
+
+public class WebMvcAutoConfiguration {
+    
+    //...
+    
+    @Override
+		public void addResourceHandlers(ResourceHandlerRegistry registry) {
+			if (!this.resourceProperties.isAddMappings()) {
+				logger.debug("Default resource handling disabled");
+				return;
+			}
+			Duration cachePeriod = this.resourceProperties.getCache().getPeriod();
+			CacheControl cacheControl = this.resourceProperties.getCache().getCachecontrol().toHttpCacheControl();
+			if (!registry.hasMappingForPattern("/webjars/**")) {
+				customizeResourceHandlerRegistration(registry.addResourceHandler("/webjars/**")
+						.addResourceLocations("classpath:/META-INF/resources/webjars/")
+						.setCachePeriod(getSeconds(cachePeriod)).setCacheControl(cacheControl));
+			}
+			String staticPathPattern = this.mvcProperties.getStaticPathPattern();
+			if (!registry.hasMappingForPattern(staticPathPattern)) {
+				customizeResourceHandlerRegistration(registry.addResourceHandler(staticPathPattern)
+						.addResourceLocations(getResourceLocations(this.resourceProperties.getStaticLocations()))
+						.setCachePeriod(getSeconds(cachePeriod)).setCacheControl(cacheControl));
+			}
+		}
+}
+```
+
+
+
+```java
+package org.springframework.boot.autoconfigure.web;
+
+@ConfigurationProperties(prefix = "spring.resources", ignoreUnknownFields = false)
+public class ResourceProperties {
+	
+	private static final String[] CLASSPATH_RESOURCE_LOCATIONS = { "classpath:/META-INF/resources/",
+			"classpath:/resources/", "classpath:/static/", "classpath:/public/" };
+    
+	// 静态资源的位置
+    // WebMvcAutoConfiguration中this.resourceProperties.getStaticLocations()使用了该属性
+	private String[] staticLocations = CLASSPATH_RESOURCE_LOCATIONS;
+    
+    //...
+}
+```
+
+> 官方文档：https://docs.spring.io/spring-boot/docs/2.3.2.RELEASE/reference/htmlsingle/#boot-features-spring-mvc-auto-configuration
+
+### 1、webjars
+
+所有/webjars/路径请求，都去classpath:/META-INF/resources/webjars/下找资源。
+
+webjars官网：https://www.webjars.org/
+
+```xml
+<!-- webjars 引入jquery -->
+<dependency>
+    <groupId>org.webjars</groupId>
+    <artifactId>jquery</artifactId>
+    <version>3.5.1</version>
+</dependency>
+```
+
+![](https://image.5460cc.com/springboot/web-webjars-jquery.png)
+
+访问：http://localhost:8080/webjars/jquery/3.5.1/jquery.js
+
+### 2、静态资源目录
+
+```
+classpath:/META-INF/resources/
+classpath:/resources/
+classpath:/static/
+classpath:/public/
+这些目录对应请求路径的/根路径，优先级从高到低
+```
+
+举例：/static/asserts/js/Chart.min.js ===> http://localhost:8080/asserts/js/Chart.min.js
+
+```yaml
+spring:
+  resources:
+    # 自定义静态资源目录，优先级为数组顺序
+    static-locations:
+      - classpath:/mystatic1
+      - classpath:/mystatic2
+```
+
+### 3、欢迎页
+
+ 静态资源目录下的index.html文件 ===> http://localhost:8080/
+
+### 4、图标
+
+**/favicon.ico 都对应静态资源目录下favicon.ico
+
+## 3、模板引擎
+
+### 1、简介
+
+模板引擎将数据渲染到预定义的模板中，生成html文档输出。
+
+![](https://image.5460cc.com/springboot/web-temaplate.png)
+
+### 2、Thyemleaf
+
+> 官网：https://www.thymeleaf.org/
+
+#### 1、引入
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-thymeleaf</artifactId>
+</dependency>
+```
+
+#### 2、使用
+
+```java
+package org.springframework.boot.autoconfigure.thymeleaf;
+
+@ConfigurationProperties(prefix = "spring.thymeleaf")
+public class ThymeleafProperties {
+
+	private static final Charset DEFAULT_ENCODING = StandardCharsets.UTF_8;
+
+	public static final String DEFAULT_PREFIX = "classpath:/templates/";
+
+	public static final String DEFAULT_SUFFIX = ".html";
+}
+```
+
+模板的路径：**classpath:/templates/**，后缀是**.html**
+
+#### 3、语法
+
