@@ -499,7 +499,7 @@ spring:
 
 ![](https://image.5460cc.com/springboot/web-temaplate.png)
 
-### 2、Thyemleaf
+### 2、Thymeleaf
 
 > 官网：https://www.thymeleaf.org/
 
@@ -530,5 +530,236 @@ public class ThymeleafProperties {
 
 模板的路径：**classpath:/templates/**，后缀是**.html**
 
+```html
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <h1>成功！</h1>
+    <!--th:text 将div里面的文本内容设置为 -->
+    <div th:text="${hello}">这是显示欢迎信息</div>
+</body>
+</html>
+```
+
+
+
 #### 3、语法
 
+（1）属性
+
+![](https://image.5460cc.com/springboot/web-thymeleaf-precedence.png)
+
+（2）表达式
+
+```properties
+Simple expressions:（表达式）
+    Variable Expressions: ${...}：变量的值，OGNL
+        （1）获取对象的属性，调用方法
+        （2）内置对象：
+            #ctx: the context object.
+            #vars: the context variables.
+            #locale: the context locale.
+            #request: (only in Web Contexts) the HttpServletRequest object.
+            #response: (only in Web Contexts) the HttpServletResponse object.
+            #session: (only in Web Contexts) the HttpSession object.
+            #servletContext: (only in Web Contexts) the ServletContext object.
+            ${#ctx.session}
+            ${session.foo}
+		（3）内置的一些工具对象：#execInfo
+    Selection Variable Expressions: *{...}：选择表达式，和${...}功能一样
+    	配合 th:object，对所选择的对象求值
+    	<div th:object="${session.user}">
+            <p>Name: <span th:text="*{firstName}">Sebastian</span>.</p>
+            <p>Surname: <span th:text="*{lastName}">Pepper</span>.</p>
+            <p>Nationality: <span th:text="*{nationality}">Saturn</span>.</p>
+        </div>
+    Message Expressions: #{...}：获取国际化内容
+    Link URL Expressions: @{...}：定义URL
+    	@{/order/process(execId=${execId},execType='FAST')}
+    Fragment Expressions: ~{...}：片段引用表达式
+    
+Literals（字面量）
+    Text literals: 'one text', 'Another one!',…
+    Number literals: 0, 34, 3.0, 12.3,…
+    Boolean literals: true, false
+    Null literal: null
+    Literal tokens: one, sometext, main,…
+Text operations:（文本操作）
+    String concatenation: +
+    Literal substitutions: |The name is ${name}|
+Arithmetic operations:（数学运算）
+    Binary operators: +, -, *, /, %
+    Minus sign (unary operator): -
+Boolean operations:（布尔运算）
+    Binary operators: and, or
+    Boolean negation (unary operator): !, not
+Comparisons and equality:（比较运算）
+    Comparators: >, <, >=, <= (gt, lt, ge, le)
+    Equality operators: ==, != (eq, ne)
+Conditional operators:（条件运算）
+    If-then: (if) ? (then)
+    If-then-else: (if) ? (then) : (else)
+    Default: (value) ?: (defaultvalue)
+Special tokens:
+	No-Operation: _
+```
+
+
+
+## 4、SpringMVC自动配置
+
+> 官方文档：https://docs.spring.io/spring-boot/docs/2.3.2.RELEASE/reference/htmlsingle/#boot-features-developing-web-applications
+
+### 1、Spring MVC auto-configuration
+
+SpringBoot为SpringMVC提供了自动配置。
+
+在Spring的默认基础上，自动配置添加了如下特性：
+
+- 包含 `ContentNegotiatingViewResolver` 和 `BeanNameViewResolver` bean；
+
+  - 自动配置了`ViewResolver`（视图解析器，根据方法的返回值获得视图对象，决定如何返回，渲染？重定向？转发？）
+  - `ContentNegotiatingViewResolver` ：组合所有的视图解析器
+  - ==如何定制：给容器中添加自己的视图解析器，会自动组合进来==
+
+- 自动注册 `Converter`， `GenericConverter`，`Formatter` bean；
+
+  - Converter：转换器，类型转换器
+  - Formatter：格式化器
+
+- 支持 `HttpMessageConverters`；
+
+  - HttpMessageConverter：SpringMVC用来转换Http请求和响应的；
+
+  - `HttpMessageConverters` 是从容器中确定；获取所有的HttpMessageConverter；
+
+    ==自己给容器中添加HttpMessageConverter，只需要将自己的组件注册容器中（@Bean,@Component）==
+
+- 自动注册 `MessageCodesResolver`；定义错误代码生成规则
+
+- 支持静态资源、webjars；
+
+- 静态 `index.html` 首页访问；
+
+- 自定义 `Favicon` 支持；
+
+- 自动使用 `ConfigurableWebBindingInitializer` bean；
+
+  - ==我们可以配置一个ConfigurableWebBindingInitializer来替换默认的；（添加到容器）==
+
+### 2、扩展SpringMVC配置
+
+自己添加一个`WebMvcConfigurer` 类，标注`Configuration` 注解，不要使用`@EnableWebMvc`注解。
+
+```java
+@Configuration
+public class MyMvcConfig implements WebMvcConfigurer {
+    @Override
+    public void addViewControllers(ViewControllerRegistry registry) {
+        registry.addViewController("/chan").setViewName("success");
+    }
+}
+```
+
+原理：
+
+（1）`WebMvcAutoConfiguration`是SpringMVC的自动配置类
+
+（2）`WebMvcAutoConfiguration`中配置`WebMvcAutoConfigurationAdapter`时，会`@Import(EnableWebMvcConfiguration.class)`
+
+```java
+@Configuration(proxyBeanMethods = false)
+@Import(EnableWebMvcConfiguration.class)
+@EnableConfigurationProperties({ WebMvcProperties.class, ResourceProperties.class })
+@Order(0)
+public static class WebMvcAutoConfigurationAdapter implements WebMvcConfigurer {
+}
+```
+
+（3）`EnableWebMvcConfiguration`继承`DelegatingWebMvcConfiguration`
+
+```java
+public static class EnableWebMvcConfiguration extends DelegatingWebMvcConfiguration implements ResourceLoaderAware {
+
+}
+```
+
+（4）`DelegatingWebMvcConfiguration`中注入了`WebMvcConfigurer`，包括我们扩展的配置类。
+
+```java
+@Configuration(proxyBeanMethods = false)
+public class DelegatingWebMvcConfiguration extends WebMvcConfigurationSupport {
+
+	private final WebMvcConfigurerComposite configurers = new WebMvcConfigurerComposite();
+
+
+	@Autowired(required = false)
+	public void setConfigurers(List<WebMvcConfigurer> configurers) {
+		if (!CollectionUtils.isEmpty(configurers)) {
+			this.configurers.addWebMvcConfigurers(configurers);
+		}
+	}
+}
+```
+
+
+
+### 3、全面接管SpringMVC
+
+在配置类中添加`@EnableWebMvc`注解。
+
+```java
+@EnableWebMvc
+@Configuration
+public class MyMvcConfig implements WebMvcConfigurer {
+    @Override
+    public void addViewControllers(ViewControllerRegistry registry) {
+        registry.addViewController("/chan").setViewName("success");
+    }
+}
+```
+
+原理：
+
+（1）@EnableWebMvc导入DelegatingWebMvcConfiguration组件
+
+```java
+@Import(DelegatingWebMvcConfiguration.class)
+public @interface EnableWebMvc {
+}
+```
+
+（2）DelegatingWebMvcConfiguration是一个WebMvcConfigurationSupport
+
+```java
+//WebMvcConfigurationSupport定义了SpringMVC的基本配置
+public class DelegatingWebMvcConfiguration extends WebMvcConfigurationSupport {
+    
+}
+```
+
+（3）WebMvcAutoConfiguration在容器中没有WebMvcConfigurationSupport组件的时候，自动配置才生效
+
+```java
+//容器中没有WebMvcConfigurationSupport组件的时候，自动配置才生效
+@ConditionalOnMissingBean(WebMvcConfigurationSupport.class)
+@AutoConfigureOrder(Ordered.HIGHEST_PRECEDENCE + 10)
+@AutoConfigureAfter({ DispatcherServletAutoConfiguration.class, TaskExecutionAutoConfiguration.class,
+		ValidationAutoConfiguration.class })
+public class WebMvcAutoConfiguration {
+}
+```
+
+（4）总结：@EnableWebMvc会导入WebMvcConfigurationSupport，容器中有WebMvcConfigurationSupport时，自动配置不会生效。
+
+## 5、如何修改SpringBoot的默认配置
+
+- SpringBoot在自动配置很多组件的时候，先看容器中有没有用户自己配置的（`@Bean`、`@Component`）如果有就用用户配置的，如果没有，才自动配置；如果有些组件可以有多个（ViewResolver）将用户配置的和自己默认的组合起来；
+
+- 在SpringBoot中会有非常多的`xxxConfigurer`帮助我们进行扩展配置
+
+- 在SpringBoot中会有很多的`xxxCustomizer`帮助我们进行定制配置
