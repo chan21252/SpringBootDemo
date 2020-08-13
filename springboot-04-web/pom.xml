@@ -31,6 +31,12 @@
             <version>3.5.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>bootstrap</artifactId>
+            <version>4.5.0</version>
+        </dependency>
+
         <!-- 引入 thyemleaf -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

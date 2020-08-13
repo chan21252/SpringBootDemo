@@ -1,6 +1,0 @@
-#spring:
-#  resources:
-#    # 自定义静态资源目录
-#    static-locations:
-#      - classpath:/mystatic1
-#      - classpath:/mystatic2

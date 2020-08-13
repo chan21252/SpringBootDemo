@@ -4,6 +4,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,7 +15,7 @@ import java.util.Map;
  * @since 2020/8/12
  */
 @Controller
-public class HelloService {
+public class HelloController {
 
     @ResponseBody
     @RequestMapping("/hello")
@@ -22,10 +23,8 @@ public class HelloService {
         return "Hello";
     }
 
-    @RequestMapping("/success")
-    public Map<String, String> success() {
-        Map<String, String> map = new HashMap<>();
-        map.put("hello", "你好");
-        return map;
-    }
+//    @RequestMapping(path = {"/", "/index.html"})
+//    public String index() {
+//        return "index";
+//    }
 }
