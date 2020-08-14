@@ -759,7 +759,123 @@ public class WebMvcAutoConfiguration {
 ## 5、如何修改SpringBoot的默认配置
 
 - SpringBoot在自动配置很多组件的时候，先看容器中有没有用户自己配置的（`@Bean`、`@Component`）如果有就用用户配置的，如果没有，才自动配置；如果有些组件可以有多个（ViewResolver）将用户配置的和自己默认的组合起来；
-
 - 在SpringBoot中会有非常多的`xxxConfigurer`帮助我们进行扩展配置
-
 - 在SpringBoot中会有很多的`xxxCustomizer`帮助我们进行定制配置
+
+## 6、RestfulCRUD
+
+### 1、默认访问首页
+
+添加视图控制器，“/”和“/index.html”对应视图“login”
+
+（1）重写`addViewControllers`方法，添加视图控制；
+
+（2）向容器中添加一个`WebMvcConfigurer`bean，返回一个添加视图控制的内部类。
+
+```
+@Configuration
+public class MyMvcConfig implements WebMvcConfigurer {
+    @Override
+    public void addViewControllers(ViewControllerRegistry registry) {
+        //跳转首页登录
+        registry.addViewController("/").setViewName("login");
+        registry.addViewController("/index.html").setViewName("login");
+    }
+    
+    @Bean
+    public WebMvcConfigurer indexWebMvcConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addViewControllers(ViewControllerRegistry registry) {
+                registry.addViewController("/").setViewName("login");
+                registry.addViewController("/index.html").setViewName("login");
+            }
+        };
+    }
+}
+```
+
+
+
+### 2、国际化
+
+（1）编写国际化文件
+
+（2）配置国际化文件的beanname
+
+```yaml
+spring:
+  messages:
+    basename: i18n.login
+```
+
+原理：
+
+```java
+public class MessageSourceAutoConfiguration {
+
+    //spring.message配置注入到MessageSourceProperties中
+    //MessageSourceProperties中basename默认值是"messages"
+    //默认读取类路径下的message.properties文件
+	@Bean
+	@ConfigurationProperties(prefix = "spring.messages")
+	public MessageSourceProperties messageSourceProperties() {
+		return new MessageSourceProperties();
+	}
+    
+    @Bean
+	public MessageSource messageSource(MessageSourceProperties properties) {
+		ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+        //从配置文件中读取配置文件的基础名（去掉国家代码的）
+		if (StringUtils.hasText(properties.getBasename())) {
+			messageSource.setBasenames(StringUtils
+					.commaDelimitedListToStringArray(StringUtils.trimAllWhitespace(properties.getBasename())));
+		}
+    }
+}
+```
+
+（3）模板页面获取国际化的值
+
+```html
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Signin</title>
+    <!-- Bootstrap core CSS -->
+    <link href="asserts/css/bootstrap.min.css" th:href="@{/webjars/bootstrap/4.5.0/css/bootstrap.min.css}"
+          rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link href="asserts/css/signin.css" th:href="@{/asserts/css/signin.css}" rel="stylesheet">
+</head>
+
+<body class="text-center">
+<form class="form-signin" action="dashboard.html">
+    <img class="mb-4" th:src="@{/asserts/img/bootstrap-solid.svg}" src="asserts/img/bootstrap-solid.svg" alt=""
+         width="72" height="72">
+    <h1 class="h3 mb-3 font-weight-normal" th:text="#{login.tip}">Please sign in</h1>
+    <label class="sr-only" th:text="#{login.username}">Username</label>
+    <input type="text" class="form-control" th:placeholder="#{login.username}" placeholder="Username" required=""
+           autofocus="">
+    <label class="sr-only" th:text="#{login.password}">Password</label>
+    <input type="password" class="form-control" th:placeholder="#{login.password}" placeholder="Password" required="">
+    <div class="checkbox mb-3">
+        <label>
+            <input type="checkbox" value="remember-me"> [[#{login.rememberme}]]
+        </label>
+    </div>
+    <button class="btn btn-lg btn-primary btn-block" th:text="#{login.btn}" type="submit">Sign in</button>
+    <p class="mt-5 mb-3 text-muted">© 2017-2018</p>
+    <a class="btn btn-sm">中文</a>
+    <a class="btn btn-sm">English</a>
+</form>
+</body>
+</html>
+```
+
+
+
